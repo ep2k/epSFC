@@ -446,7 +446,7 @@ module apu
 
     // ---- RAM/ROM --------
 
-    bram_aram bram_aram(        // IP (RAM: 1-PORT, 8bit*131072, 出力前後にDFF(q取得に2クロック))
+    bram_aram bram_aram(        // IP (RAM: 1-PORT, 8bit * 131072, 出力前後にDFF(q取得に2クロック))
         .address(addr),
         .clock(clk),
         .data(wdata),

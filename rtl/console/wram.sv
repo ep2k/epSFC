@@ -23,7 +23,7 @@ module wram
 
     logic [16:0] addr_b = 17'h0;
 
-    bram_wram bram_wram(        // IP (RAM: 1-PORT, 8bit*131072)
+    bram_wram bram_wram(        // IP (RAM: 1-PORT, 8bit * 131072)
         .address(wram_en ? addr_a : addr_b),
         .clock(clk),
         .data(wdata),

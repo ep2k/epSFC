@@ -198,7 +198,7 @@ module sdram_controller
 
     // ---- Buffer --------
 
-    bram_dr_buf w_buf_0(        // IP (RAM: 2-PORT, 15bit*512)
+    bram_dr_buf w_buf_0(        // IP (RAM: 2-PORT, 15bit * 512)
         .clock(clk),
         .wraddress(w_x_reg),
         .data(w_color_reg),
@@ -207,7 +207,7 @@ module sdram_controller
         .q(dr_wdata_0)
     );
 
-    bram_dr_buf w_buf_1(        // IP (RAM: 2-PORT, 15bit*512)
+    bram_dr_buf w_buf_1(        // IP (RAM: 2-PORT, 15bit * 512)
         .clock(clk),
         .wraddress(w_x_reg),
         .data(w_color_reg),
@@ -218,7 +218,7 @@ module sdram_controller
 
     assign dr_wdata = w_tgl ? {1'b0, dr_wdata_1} : {1'b0, dr_wdata_0};
 
-    bram_dr_buf r_buf_0(        // IP (RAM: 2-PORT, 15bit*512)
+    bram_dr_buf r_buf_0(        // IP (RAM: 2-PORT, 15bit * 512)
         .clock(clk),
         .wraddress(ctr - CL),
         .data(dr_rdata[14:0]),
@@ -227,7 +227,7 @@ module sdram_controller
         .q(r_color_0)
     );
 
-    bram_dr_buf r_buf_1(        // IP (RAM: 2-PORT, 15bit*512)
+    bram_dr_buf r_buf_1(        // IP (RAM: 2-PORT, 15bit * 512)
         .clock(clk),
         .wraddress(ctr - CL),
         .data(dr_rdata[14:0]),        
