@@ -218,10 +218,10 @@ module epSFC_de0cv (
     assign GPIO_1[7] = use_intcart | (~refresh);
 
     assign GPIO_0[28] = ((~use_intcart) & reset) ? 1'b0 : 1'bz;
-    assign cart_reset_in = GPIO_0[28];
+    assign cart_reset_in = ~GPIO_0[28];
 
     assign GPIO_0[29] = ((~use_intcart) & hvint_irq) ? 1'b0 : 1'bz;
-    assign cart_irq_in = GPIO_0[29];
+    assign cart_irq_in = ~GPIO_0[29];
 
     assign GPIO_0[30] = sound_l_pdm;
     assign GPIO_0[31] = sound_r_pdm;
@@ -288,8 +288,7 @@ module epSFC_de0cv (
         .refresh,
         .cpu_clk_out,
 
-        // .cart_irq_in,
-        .cart_irq_in(1'b0),     // temporarily disabled
+        .cart_irq_in,
         .hvint_irq,
 
         .n_cpu_en,
