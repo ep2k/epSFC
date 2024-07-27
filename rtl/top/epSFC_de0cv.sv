@@ -288,8 +288,7 @@ module epSFC_de0cv (
         .refresh,
         .cpu_clk_out,
 
-        // .cart_irq_in,
-        .cart_irq_in(1'b0),     // temporarily disabled
+        .cart_irq_in,
         .hvint_irq,
 
         .n_cpu_en,
