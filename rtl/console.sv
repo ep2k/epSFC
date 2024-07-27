@@ -108,7 +108,17 @@ module console
 
     assign wdata = dma ? (dma_a2b ? a_rdata : b_rdata) : cpu_wdata;
 
-    assign cart_send = dma ? (~(cart_en & dma_a2b)) : (a_write | b_write); // DMAのときはcart_enかつA->Bでカートリッジ読み込み [todo] 修正
+    always_comb begin
+        if (dma) begin
+            if (dma_a2b) begin  // A -> B
+                cart_send = (b_op == B_NONE) & b_write;
+            end else begin      // B -> A
+                cart_send = (a_op == A_NONE) & (~wram_en) & a_write;
+            end
+        end else begin
+            cart_send = a_write | b_write;
+        end
+    end
 
     cpu cpu(
         .clk,
