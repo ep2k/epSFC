@@ -32,7 +32,8 @@ module bg7
     input logic [7:0] vram_rdata_l,
     input logic [7:0] vram_rdata_h,
 
-    output bg_pixel_type pixel
+    output logic [7:0] pixel,
+    output logic black
 );
     
     // ------------------------------
@@ -45,6 +46,8 @@ module bg7
     logic signed [27:0] mul1_y, mul2_y;     // 15bit+12bit+1bit=28bit
 
     logic [27:0] vram_x_calc, vram_y_calc;
+
+    logic transparent;
 
     // ------------------------------
     //  Registers
@@ -59,7 +62,7 @@ module bg7
                                                     // VRAM.X/Y計算 -> map fetch -> data fetch で 3クロック遅れる
 
     logic [7:0] tile_index;
-    logic [7:0] pixel_main;
+    logic [7:0] pixel_raw;
 
     // ------------------------------
     //  Main
@@ -136,8 +139,15 @@ module bg7
 
     always_ff @(posedge clk) begin
         if (dot_en) begin
-            pixel_main <= vram_rdata_h;
+            pixel_raw <= vram_rdata_h;
         end
     end
+
+    // ---- Pixel Output --------
+
+    assign transparent = screen_over[2] & (m7sel[3:2] == 2'b10);
+    assign black = screen_over[2] & (m7sel[3:2] == 2'b11);
+
+    assign pixel = transparent ? 8'h0 : pixel_raw;
 
 endmodule

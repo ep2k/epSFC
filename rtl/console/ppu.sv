@@ -95,6 +95,9 @@ module ppu
 
     logic mosaic_pixel_strobe;
     logic [3:0] mosaic_yofs_subtract;
+
+    logic [7:0] bg7_pixel;
+    logic bg7_black;
     
     // ---- OBJ --------
 
@@ -741,7 +744,8 @@ module ppu
         .vram_rdata_l,
         .vram_rdata_h,
 
-        .pixel(bg7_pixel)
+        .pixel(bg7_pixel),
+        .black(bg7_black)
     );
 
     // ---- Object (OBJ) / Sprite --------
