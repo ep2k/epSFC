@@ -58,6 +58,9 @@ module bg7
     logic [2:0] screen_over;                        // スクリーンオーバーの有無を記録するシフトレジスタ
                                                     // VRAM.X/Y計算 -> map fetch -> data fetch で 3クロック遅れる
 
+    logic [7:0] tile_index;
+    logic [7:0] pixel_main;
+
     // ------------------------------
     //  Main
     // ------------------------------
@@ -117,6 +120,24 @@ module bg7
         end
     end
 
+    // ---- VRAM Access --------
 
+    // Tilemap Address
+    assign vram_l_addr = {1'b0, vram_y[9:3], vram_x[9:3]};
+
+    always_ff @(posedge clk) begin
+        if (dot_en) begin
+            tile_index <= vram_rdata_l;
+        end
+    end
+
+    // Tile Data Address
+    assign vram_h_addr = {1'b0, tile_index, vram_y_prev_2_0, vram_x_prev_2_0};
+
+    always_ff @(posedge clk) begin
+        if (dot_en) begin
+            pixel_main <= vram_rdata_h;
+        end
+    end
 
 endmodule
