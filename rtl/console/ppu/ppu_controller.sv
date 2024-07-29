@@ -22,6 +22,7 @@ module ppu_controller (
 
     output logic [8:0] x_fetch,
     output logic [7:0] x_mid,
+    output logic [7:0] x_bg7,
     output logic [7:0] y,
 
     output logic [2:0] bg_mode[3:0],
@@ -124,6 +125,7 @@ module ppu_controller (
 
     assign x_fetch = h_ctr - 6;
     assign x_mid = x_fetch - 16;
+    assign x_bg7 = x_mid + 3; // pixel_mixerへの入力に対して乗算，タイルマップRead, タイルデータReadで3クロック遅れる
     assign y = v_ctr[7:0];
 
     assign xout = {x_mid - 1, dot_ctr[1]};

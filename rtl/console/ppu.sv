@@ -77,7 +77,7 @@ module ppu
     logic field, dot_en;
     logic [2:0] dot_ctr;
     logic [8:0] x_fetch;
-    logic [7:0] x_mid, y;
+    logic [7:0] x_mid, x_bg7, y;
 
     // ---- BG --------
 
@@ -607,6 +607,7 @@ module ppu
         
         .x_fetch,
         .x_mid,
+        .x_bg7,
         .y,
 
         .bg_mode,
