@@ -705,10 +705,34 @@ module ppu
         .yofs_subtract(mosaic_yofs_subtract)
     );
 
-    // BG7 未実装
-    // bg7 bg7(
+    bg7 bg7(
+        .clk,
+        .reset,
+        .dot_en,
+        .dot_ctr,
 
-    // );
+        .m7sel,
+
+        .m7_a,
+        .m7_b,
+        .m7_c,
+        .m7_d,
+
+        .m7_xofs,
+        .m7_yofs,
+        .m7_xorig,
+        .m7_yorig,
+
+        .x(x_bg7),
+        .y,
+
+        .vram_l_addr(bg7_vram_l_addr),
+        .vram_h_addr(bg7_vram_h_addr),
+        .vram_rdata_l,
+        .vram_rdata_h,
+
+        .pixel(bg7_pixel)
+    );
 
     // ---- Object (OBJ) / Sprite --------
 
