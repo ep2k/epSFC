@@ -88,6 +88,7 @@ module ppu
     logic [2:0] fetch_data_num;
     logic [14:0] bg_vram_addr[3:0];
 
+    bg_pixel_type bg_pixel_06[3:0];     // Mode 0-6 の出力
     bg_pixel_type bg_pixel[3:0];
 
     logic [9:0] opt_x, opt_y;
@@ -689,7 +690,7 @@ module ppu
                 .vram_addr(bg_vram_addr[gi]),
                 .vram_rdata,
 
-                .pixel(bg_pixel[gi]),
+                .pixel(bg_pixel_06[gi]),
 
                 .newline(h_ctr == 9'h0),
                 .opt_x(opt_x_gi),
@@ -747,6 +748,31 @@ module ppu
         .pixel(bg7_pixel),
         .black(bg7_black)
     );
+
+    always_comb begin
+
+        if (bgmode == 3'h7) begin   // BG Mode 7
+
+            for (int i = 0; i < 4; i++) begin
+                bg_pixel[i].main = 8'h0;
+                bg_pixel[i].sub = 8'h0;
+                bg_pixel[i].palette = 3'h0;
+                bg_pixel[i].prior = 1'b0;
+            end
+
+            bg_pixel[0].main = bg7_pixel;
+            if (extbg) begin    // EXTBG
+                bg_pixel[1].main = {1'b0, bg7_pixel[6:0]};
+                bg_pixel[1].prior = bg7_pixel[7];
+            end
+
+        end else begin  // BG Mode 0-6
+
+            bg_pixel = bg_pixel_06;
+            
+        end
+
+    end
 
     // ---- Object (OBJ) / Sprite --------
 
