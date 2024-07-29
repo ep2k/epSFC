@@ -50,7 +50,7 @@ module ppu
 
     // ---- VRAM --------
 
-    logic [14:0] vram_addr;
+    logic [14:0] vram_l_addr, vram_h_addr;
     logic [14:0] vram_access_addr;
     logic [14:0] vram_access_addr_trans;
     logic [14:0] obj_vram_addr;
@@ -249,7 +249,7 @@ module ppu
     // ---- VRAM --------
 
     bram_vram bram_vram_l(      // IP (RAM: 1-PORT, 8bit * 32768)
-        .address(vram_addr),
+        .address(vram_l_addr),
         .clock(clk),
         .data(wdata),
         .wren(((~(fetch_map | fetch_data)) | fblank) & cpu_en & (b_op == B_VMDATAL)),
@@ -257,7 +257,7 @@ module ppu
     );
 
     bram_vram bram_vram_h(      // IP (RAM: 1-PORT, 8bit * 32768)
-        .address(vram_addr),
+        .address(vram_h_addr),
         .clock(clk),
         .data(wdata),
         .wren(((~(fetch_map | fetch_data)) | fblank) & cpu_en & (b_op == B_VMDATAH)),
@@ -268,13 +268,17 @@ module ppu
 
     always_comb begin
         if (fblank) begin
-            vram_addr = vram_access_addr_trans;
+            vram_l_addr = vram_access_addr_trans;
+            vram_h_addr = vram_access_addr_trans;
         end else if (fetch_map | fetch_data) begin
-            vram_addr = bg_vram_addr[bg_target];
+            vram_l_addr = bg_vram_addr[bg_target];
+            vram_h_addr = bg_vram_addr[bg_target];
         end else if (obj_vram_read) begin
-            vram_addr = obj_vram_addr;
+            vram_l_addr = obj_vram_addr;
+            vram_h_addr = obj_vram_addr;
         end else begin
-            vram_addr = vram_access_addr_trans;
+            vram_l_addr = vram_access_addr_trans;
+            vram_h_addr = vram_access_addr_trans;
         end
     end
 
