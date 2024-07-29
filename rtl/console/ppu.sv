@@ -53,6 +53,7 @@ module ppu
     logic [14:0] vram_l_addr, vram_h_addr;
     logic [14:0] vram_access_addr;
     logic [14:0] vram_access_addr_trans;
+    logic [14:0] bg7_vram_l_addr, bg7_vram_h_addr;
     logic [14:0] obj_vram_addr;
     logic obj_vram_read;
     logic [7:0] vram_rdata_l, vram_rdata_h;
@@ -270,6 +271,9 @@ module ppu
         if (fblank) begin
             vram_l_addr = vram_access_addr_trans;
             vram_h_addr = vram_access_addr_trans;
+        end else if ((bgmode == 3'h7) & bg7_period) begin
+            vram_l_addr = bg7_vram_l_addr;
+            vram_h_addr = bg7_vram_h_addr;
         end else if (fetch_map | fetch_data) begin
             vram_l_addr = bg_vram_addr[bg_target];
             vram_h_addr = bg_vram_addr[bg_target];
