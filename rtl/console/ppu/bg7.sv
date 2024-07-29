@@ -35,6 +35,41 @@ module bg7
     output bg_pixel_type pixel
 );
     
+    // ------------------------------
+    //  Wires
+    // ------------------------------
 
+    logic signed [15:0] mul1_a, mul2_a;     // A, B, C, D
+    logic signed [12:0] mul1_b, mul2_b;     // X + XOFS - XO, Y + YOFS - YO
+                                            // (12(+1)bit + 12(+1)bit + 8bit -> Max. 12(+1)bit)
+    logic signed [27:0] mul1_y, mul2_y;     // 15bit+12bit+1bit=28bit
+
+    // ------------------------------
+    //  Registers
+    // ------------------------------
+    
+    // ------------------------------
+    //  Main
+    // ------------------------------
+    
+    // ---- Multiplier --------
+
+    /*
+        Mul1:
+            t=0(VRAM.X): A * (X + XOFS - XO)
+            t=1(VRAM.Y): C * (X + XOFS - XO)
+        Mul2:
+            t=0(VRAM.X): B * (Y + YOFS - YO)
+            t=1(VRAM.Y): D * (Y + YOFS - YO)
+    */
+
+    assign mul1_a = dot_ctr[0] ? m7_c : m7_a;
+    assign mul1_b = {5'h0, m7sel[0] ? (~x) : x} + m7_xofs - m7_xorig;       // x_flip if m7sel[0]=1
+
+    assign mul2_a = dot_ctr[0] ? m7_d : m7_b;
+    assign mul2_b = {5'h0, m7sel[1] ? (~y) : y} + m7_yofs - m7_yorig;       // y_flip if m7sel[1]=1
+
+    assign mul1_y = $signed(mul1_a) * $signed(mul1_b);
+    assign mul2_y = $signed(mul2_a) * $signed(mul2_b);
 
 endmodule
