@@ -48,6 +48,9 @@ module bg7
     //  Registers
     // ------------------------------
     
+    logic [27:0] mul1_y_reg_0, mul1_y_reg_1;
+    logic [27:0] mul2_y_reg_0, mul2_y_reg_1;
+
     // ------------------------------
     //  Main
     // ------------------------------
@@ -71,5 +74,15 @@ module bg7
 
     assign mul1_y = $signed(mul1_a) * $signed(mul1_b);
     assign mul2_y = $signed(mul2_a) * $signed(mul2_b);
+
+    always_ff @(posedge clk) begin
+        if (dot_ctr == 3'd0) begin
+            mul1_y_reg_0 <= mul1_y;
+            mul2_y_reg_0 <= mul2_y;
+        end else if (dot_ctr == 3'd1) begin
+            mul1_y_reg_1 <= mul1_y;
+            mul2_y_reg_1 <= mul2_y;
+        end
+    end
 
 endmodule
