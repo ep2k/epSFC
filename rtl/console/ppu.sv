@@ -83,7 +83,7 @@ module ppu
 
     logic [2:0] bg_mode[3:0];
     logic [1:0] bg_target;
-    logic fetch_map, fetch_data, color_period;
+    logic fetch_map, fetch_data, bg7_period, color_period;
     logic [2:0] fetch_data_num;
     logic [14:0] bg_vram_addr[3:0];
 
@@ -621,6 +621,7 @@ module ppu
         .start_objfetch,
         .obj_ovf_clear,
 
+        .bg7_period,
         .color_period,
 
         .xout,
