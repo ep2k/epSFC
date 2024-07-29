@@ -44,12 +44,19 @@ module bg7
                                             // (12(+1)bit + 12(+1)bit + 8bit -> Max. 12(+1)bit)
     logic signed [27:0] mul1_y, mul2_y;     // 15bit+12bit+1bit=28bit
 
+    logic [27:0] vram_x_calc, vram_y_calc;
+
     // ------------------------------
     //  Registers
     // ------------------------------
     
     logic [27:0] mul1_y_reg_0, mul1_y_reg_1;
     logic [27:0] mul2_y_reg_0, mul2_y_reg_1;
+
+    logic [9:0] vram_x, vram_y;                     // map fetch で使用
+    logic [2:0] vram_x_prev_2_0, vram_y_prev_2_0;   // data fetch で使用
+    logic [2:0] screen_over;                        // スクリーンオーバーの有無を記録するシフトレジスタ
+                                                    // VRAM.X/Y計算 -> map fetch -> data fetch で 3クロック遅れる
 
     // ------------------------------
     //  Main
@@ -84,5 +91,32 @@ module bg7
             mul2_y_reg_1 <= mul2_y;
         end
     end
+
+    // ---- VRAM.X/Y Calculation --------
+
+    /*
+        VRAM.X = (A(X + XOFS - XO) + B(Y + YOFS - YO) + XO << 8) >> 8
+        VRAM.Y = (C(X + XOFS - XO) + D(Y + YOFS - YO) + YO << 8) >> 8
+    */
+
+    assign vram_x_calc = mul1_y_reg_0 + mul2_y_reg_0 + {{7{m7_xorig[12]}}, m7_xorig, 8'h0};
+    assign vram_y_calc = mul1_y_reg_1 + mul2_y_reg_1 + {{7{m7_yorig[12]}}, m7_yorig, 8'h0};
+
+    always_ff @(posedge clk) begin
+        if (dot_en) begin
+            vram_x <= vram_x_calc[17:8];
+            vram_y <= vram_y_calc[17:8];
+
+            vram_x_prev_2_0 <= vram_x[2:0];
+            vram_y_prev_2_0 <= vram_y[2:0];
+
+            screen_over <= {
+                screen_over[1:0],
+                (vram_x_calc[27:18] != 10'h0) | (vram_y_calc[27:18] != 10'h0)
+            };
+        end
+    end
+
+
 
 endmodule
