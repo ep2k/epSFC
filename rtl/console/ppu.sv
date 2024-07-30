@@ -854,6 +854,7 @@ module ppu
 
         .bg_pixel,
         .obj_pixel,
+        .bg7_black,
 
         .bgmode,
         .bg3_prior,

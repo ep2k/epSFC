@@ -253,8 +253,21 @@ module refer_pal_selector
                 end
             end
             3'h7: begin // (S3) (S2) 2H (S1) 1L (S0) 2L
-                refer_pal = BACK;
-                // prior_num = 4'd0;
+                if (enable[4] & obj_pixel.prior[1] & (obj_pixel.main != 4'h0)) begin
+                    refer_pal = OBJ;
+                end else if (enable[1] & bg_pixel[1].prior & (bg_pixel_ms[1][3:0] != 4'h0)) begin
+                    refer_pal = BG2_7;
+                end else if (enable[4] & obj_pixel.prior[0] & (obj_pixel.main != 4'h0)) begin
+                    refer_pal = OBJ;
+                end else if (enable[0] & (bg_pixel_ms[0][3:0] != 4'h0)) begin
+                    refer_pal = BG1_8;
+                end else if (enable[4] & (obj_pixel.main != 4'h0)) begin
+                    refer_pal = OBJ;
+                end else if (enable[1] & (bg_pixel_ms[1][3:0] != 4'h0)) begin
+                    refer_pal = BG2_7;
+                end else begin
+                    refer_pal = BACK;
+                end
             end
         endcase
     end

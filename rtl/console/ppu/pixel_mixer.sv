@@ -12,6 +12,7 @@ module pixel_mixer
 
     input bg_pixel_type bg_pixel[3:0],
     input obj_pixel_type obj_pixel,
+    input logic bg7_black,
     
     input logic [2:0] bgmode,
     input logic bg3_prior,
@@ -74,7 +75,7 @@ module pixel_mixer
     // color_left, color_rightはH-RESでの左/右ピクセル, 非H-RESではcolor_left=color_right
     always_ff @(posedge clk) begin
         if (step == 2'h1) begin
-            if (do_main_black) begin
+            if (do_main_black | ((bgmode == 3'h7) & bg7_black)) begin
                 color_main <= 15'h0;
             end else if ((refer_pal_main == BG1_8) & use_direct_color) begin
                 color_main <= direct_color;
@@ -155,6 +156,7 @@ module pixel_mixer
             BG1_4   : cgram_addr_main = {1'b0, bg_pixel[0].palette, bg_pixel[0].main[3:0]};
             BG2_4   : cgram_addr_main = {1'b0, bg_pixel[1].palette, bg_pixel[1].main[3:0]};
             BG1_8   : cgram_addr_main = bg_pixel[0].main;
+            BG2_7   : cgram_addr_main = bg_pixel[1].main;
             OBJ     : cgram_addr_main = {1'b1, obj_pixel.palette, obj_pixel.main};
             default : cgram_addr_main = 8'h0;   // backdrop
         endcase
@@ -187,6 +189,7 @@ module pixel_mixer
                 BG1_4   : cgram_addr_sub = {1'b0, bg_pixel[0].palette, bg_pixel[0].main[3:0]};
                 BG2_4   : cgram_addr_sub = {1'b0, bg_pixel[1].palette, bg_pixel[1].main[3:0]};
                 BG1_8   : cgram_addr_sub = bg_pixel[0].main;
+                BG2_7   : cgram_addr_sub = bg_pixel[1].main;
                 OBJ     : cgram_addr_sub = {1'b1, obj_pixel.palette, obj_pixel.main};
                 default : cgram_addr_sub = 8'h0;    // backdrop
             endcase
@@ -195,6 +198,7 @@ module pixel_mixer
 
     // ---- Direct Color --------
 
+    // Mode7にも対応 (Mode7ではbg_pixel[0].palette=0であるため)
     assign direct_color = {
         bg_pixel[0].main[7:6], bg_pixel[0].palette[2], 2'b0,
         bg_pixel[0].main[5:3], bg_pixel[0].palette[1], 1'b0,
@@ -221,6 +225,7 @@ module pixel_mixer
                 BG1_4   : do_math = math_control[0];
                 BG2_4   : do_math = math_control[1];
                 BG1_8   : do_math = math_control[0];
+                BG2_7   : do_math = math_control[1];
                 OBJ     : do_math = obj_pixel.palette[2] & math_control[4];
                 default : do_math = math_control[5];    // backdrop
             endcase

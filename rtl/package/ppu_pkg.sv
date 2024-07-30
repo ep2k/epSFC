@@ -49,7 +49,7 @@ package ppu_pkg;
 
     typedef enum logic [3:0] {
         BG1_2, BG1_4, BG1_8,
-        BG2_2_0, BG2_2, BG2_4,
+        BG2_2_0, BG2_2, BG2_4, BG2_7,
         BG3_2_0, BG3_2,
         BG4_2,
         OBJ,
