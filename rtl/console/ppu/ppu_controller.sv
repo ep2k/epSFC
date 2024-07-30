@@ -22,6 +22,7 @@ module ppu_controller (
 
     output logic [8:0] x_fetch,
     output logic [7:0] x_mid,
+    output logic [7:0] x_bg7,
     output logic [7:0] y,
 
     output logic [2:0] bg_mode[3:0],
@@ -35,6 +36,7 @@ module ppu_controller (
     output logic start_objfetch,
     output logic obj_ovf_clear,
 
+    output logic bg7_period,        // VRAMアドレスとしてBG7が出力するものを使用する期間
     output logic color_period,
 
     output logic [8:0] xout,
@@ -59,6 +61,8 @@ module ppu_controller (
     logic ppu_period_v = 1'b0;      // 1 <= v_ctr < 225/240
     logic obj_period_v = 1'b0;      // 0 <= v_ctr < 224/239
     logic fetch_period_h = 1'b0;    // 6 <= h_ctr[10:2] < 262+8
+    logic bg7_period_h = 1'b0;      // 270-257 <= h_ctr[10:2] < 262+8
+                                    // (終了タイミングをfetch_period_hと合わせる, color_period-1まで7クロック)
     logic color_period_h = 1'b0;    // 6+16 <= h_ctr[10:2] < 262+16
     logic write_period_h = 1'b0;    // 6+16+1 <= h_ctr[10:2] < 262+16+1
     logic dr_write_req_v = 1'b0;    // 2 <= v_ctr < 226/241
@@ -124,6 +128,7 @@ module ppu_controller (
 
     assign x_fetch = h_ctr - 6;
     assign x_mid = x_fetch - 16;
+    assign x_bg7 = h_ctr - (270 - 257) + 1; // bg7_period開始の1ピクセル前にx_bg7=0となる(乗算で1クロック使用するため)
     assign y = v_ctr[7:0];
 
     assign xout = {x_mid - 1, dot_ctr[1]};
@@ -167,6 +172,16 @@ module ppu_controller (
 
     always_ff @(posedge clk) begin
         if (reset) begin
+            bg7_period_h <= 1'b0;
+        end else if (dot_en & (h_ctr == (9'd270 - 9'd257 - 9'd1))) begin
+            bg7_period_h <= 1'b1;
+        end else if (dot_en & (h_ctr == (9'd261 + 9'd8))) begin
+            bg7_period_h <= 1'b0;
+        end
+    end
+
+    always_ff @(posedge clk) begin
+        if (reset) begin
             color_period_h <= 1'b0;
         end else if (dot_en & (h_ctr == (9'd5 + 9'd16))) begin
             color_period_h <= 1'b1;
@@ -204,6 +219,7 @@ module ppu_controller (
     assign color_write = write_period & dot_ctr[0];
     assign dr_write_req = dr_write_req_v & (h_ctr == 9'd0);
     assign fetch_period = ppu_period_v & fetch_period_h;
+    assign bg7_period = ppu_period_v & bg7_period_h;
     assign color_period = ppu_period_v & color_period_h;
     assign write_period = ppu_period_v & write_period_h;
     assign oamaddr_reload =

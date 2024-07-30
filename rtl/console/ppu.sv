@@ -50,9 +50,10 @@ module ppu
 
     // ---- VRAM --------
 
-    logic [14:0] vram_addr;
+    logic [14:0] vram_l_addr, vram_h_addr;
     logic [14:0] vram_access_addr;
     logic [14:0] vram_access_addr_trans;
+    logic [14:0] bg7_vram_l_addr, bg7_vram_h_addr;
     logic [14:0] obj_vram_addr;
     logic obj_vram_read;
     logic [7:0] vram_rdata_l, vram_rdata_h;
@@ -77,16 +78,17 @@ module ppu
     logic field, dot_en;
     logic [2:0] dot_ctr;
     logic [8:0] x_fetch;
-    logic [7:0] x_mid, y;
+    logic [7:0] x_mid, x_bg7, y;
 
     // ---- BG --------
 
     logic [2:0] bg_mode[3:0];
     logic [1:0] bg_target;
-    logic fetch_map, fetch_data, color_period;
+    logic fetch_map, fetch_data, bg7_period, color_period;
     logic [2:0] fetch_data_num;
     logic [14:0] bg_vram_addr[3:0];
 
+    bg_pixel_type bg_pixel_06[3:0];     // Mode 0-6 の出力
     bg_pixel_type bg_pixel[3:0];
 
     logic [9:0] opt_x, opt_y;
@@ -94,6 +96,12 @@ module ppu
 
     logic mosaic_pixel_strobe;
     logic [3:0] mosaic_yofs_subtract;
+
+    logic [7:0] bg7_pixel;
+    logic bg7_black;
+
+    logic [3:0] mosaic_x_subtract_bg7;
+    logic [3:0] mosaic_y_subtract_bg7;
     
     // ---- OBJ --------
 
@@ -249,7 +257,7 @@ module ppu
     // ---- VRAM --------
 
     bram_vram bram_vram_l(      // IP (RAM: 1-PORT, 8bit * 32768)
-        .address(vram_addr),
+        .address(vram_l_addr),
         .clock(clk),
         .data(wdata),
         .wren(((~(fetch_map | fetch_data)) | fblank) & cpu_en & (b_op == B_VMDATAL)),
@@ -257,7 +265,7 @@ module ppu
     );
 
     bram_vram bram_vram_h(      // IP (RAM: 1-PORT, 8bit * 32768)
-        .address(vram_addr),
+        .address(vram_h_addr),
         .clock(clk),
         .data(wdata),
         .wren(((~(fetch_map | fetch_data)) | fblank) & cpu_en & (b_op == B_VMDATAH)),
@@ -268,13 +276,20 @@ module ppu
 
     always_comb begin
         if (fblank) begin
-            vram_addr = vram_access_addr_trans;
+            vram_l_addr = vram_access_addr_trans;
+            vram_h_addr = vram_access_addr_trans;
+        end else if ((bgmode == 3'h7) & bg7_period) begin
+            vram_l_addr = bg7_vram_l_addr;
+            vram_h_addr = bg7_vram_h_addr;
         end else if (fetch_map | fetch_data) begin
-            vram_addr = bg_vram_addr[bg_target];
+            vram_l_addr = bg_vram_addr[bg_target];
+            vram_h_addr = bg_vram_addr[bg_target];
         end else if (obj_vram_read) begin
-            vram_addr = obj_vram_addr;
+            vram_l_addr = obj_vram_addr;
+            vram_h_addr = obj_vram_addr;
         end else begin
-            vram_addr = vram_access_addr_trans;
+            vram_l_addr = vram_access_addr_trans;
+            vram_h_addr = vram_access_addr_trans;
         end
     end
 
@@ -607,6 +622,7 @@ module ppu
         
         .x_fetch,
         .x_mid,
+        .x_bg7,
         .y,
 
         .bg_mode,
@@ -620,6 +636,7 @@ module ppu
         .start_objfetch,
         .obj_ovf_clear,
 
+        .bg7_period,
         .color_period,
 
         .xout,
@@ -676,7 +693,7 @@ module ppu
                 .vram_addr(bg_vram_addr[gi]),
                 .vram_rdata,
 
-                .pixel(bg_pixel[gi]),
+                .pixel(bg_pixel_06[gi]),
 
                 .newline(h_ctr == 9'h0),
                 .opt_x(opt_x_gi),
@@ -701,14 +718,68 @@ module ppu
         .period_start(x_mid == 8'hff),
 
         .size(mosaic_size),
+
         .pixel_strobe(mosaic_pixel_strobe),
-        .yofs_subtract(mosaic_yofs_subtract)
+        .yofs_subtract(mosaic_yofs_subtract),
+
+        .x_subtract_bg7(mosaic_x_subtract_bg7),
+        .y_subtract_bg7(mosaic_y_subtract_bg7)
     );
 
-    // BG7 未実装
-    // bg7 bg7(
+    bg7 bg7(
+        .clk,
+        .reset,
+        .dot_en,
+        .dot_ctr,
 
-    // );
+        .m7sel,
+
+        .m7_a,
+        .m7_b,
+        .m7_c,
+        .m7_d,
+
+        .m7_xofs,
+        .m7_yofs,
+        .m7_xorig,
+        .m7_yorig,
+
+        .x(x_bg7 - (mosaic_enable[0] ? {4'h0, mosaic_x_subtract_bg7} : 8'h0)),
+        .y(y - (mosaic_enable[0] ? {4'h0, mosaic_y_subtract_bg7} : 8'h0)),
+
+        .vram_l_addr(bg7_vram_l_addr),
+        .vram_h_addr(bg7_vram_h_addr),
+        .vram_rdata_l,
+        .vram_rdata_h,
+
+        .pixel(bg7_pixel),
+        .black(bg7_black)
+    );
+
+    always_comb begin
+
+        if (bgmode == 3'h7) begin   // BG Mode 7
+
+            for (int i = 0; i < 4; i++) begin
+                bg_pixel[i].main = 8'h0;
+                bg_pixel[i].sub = 8'h0;
+                bg_pixel[i].palette = 3'h0;
+                bg_pixel[i].prior = 1'b0;
+            end
+
+            bg_pixel[0].main = bg7_pixel;
+            if (extbg) begin    // EXTBG
+                bg_pixel[1].main = {1'b0, bg7_pixel[6:0]};
+                bg_pixel[1].prior = bg7_pixel[7];
+            end
+
+        end else begin  // BG Mode 0-6
+
+            bg_pixel = bg_pixel_06;
+            
+        end
+
+    end
 
     // ---- Object (OBJ) / Sprite --------
 
@@ -783,6 +854,7 @@ module ppu
 
         .bg_pixel,
         .obj_pixel,
+        .bg7_black,
 
         .bgmode,
         .bg3_prior,
