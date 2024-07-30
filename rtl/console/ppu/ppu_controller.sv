@@ -61,7 +61,8 @@ module ppu_controller (
     logic ppu_period_v = 1'b0;      // 1 <= v_ctr < 225/240
     logic obj_period_v = 1'b0;      // 0 <= v_ctr < 224/239
     logic fetch_period_h = 1'b0;    // 6 <= h_ctr[10:2] < 262+8
-    logic bg7_period_h = 1'b0;      // 6+16-2 <= h_ctr[10:2] < 262+16-2+1
+    logic bg7_period_h = 1'b0;      // 270-257 <= h_ctr[10:2] < 262+8
+                                    // (終了タイミングをfetch_period_hと合わせる, color_period-1まで7クロック)
     logic color_period_h = 1'b0;    // 6+16 <= h_ctr[10:2] < 262+16
     logic write_period_h = 1'b0;    // 6+16+1 <= h_ctr[10:2] < 262+16+1
     logic dr_write_req_v = 1'b0;    // 2 <= v_ctr < 226/241
@@ -127,7 +128,7 @@ module ppu_controller (
 
     assign x_fetch = h_ctr - 6;
     assign x_mid = x_fetch - 16;
-    assign x_bg7 = x_mid + 3; // pixel_mixerへの入力に対して乗算，タイルマップRead, タイルデータReadで3クロック遅れる
+    assign x_bg7 = h_ctr - (270 - 257) + 1; // bg7_period開始の1ピクセル前にx_bg7=0となる(乗算で1クロック使用するため)
     assign y = v_ctr[7:0];
 
     assign xout = {x_mid - 1, dot_ctr[1]};
@@ -172,9 +173,9 @@ module ppu_controller (
     always_ff @(posedge clk) begin
         if (reset) begin
             bg7_period_h <= 1'b0;
-        end else if (dot_en & (h_ctr == (9'd5 + 9'd16 - 9'd2))) begin
+        end else if (dot_en & (h_ctr == (9'd270 - 9'd257 - 9'd1))) begin
             bg7_period_h <= 1'b1;
-        end else if (dot_en & (h_ctr == (9'd261 + 9'd16 - 9'd2 + 9'd1))) begin
+        end else if (dot_en & (h_ctr == (9'd261 + 9'd8))) begin
             bg7_period_h <= 1'b0;
         end
     end

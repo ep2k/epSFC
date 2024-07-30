@@ -47,7 +47,7 @@ module bg7
 
     logic [27:0] vram_x_calc, vram_y_calc;
 
-    logic transparent;
+    logic transparent_0, black_0;
 
     // ------------------------------
     //  Registers
@@ -63,6 +63,9 @@ module bg7
 
     logic [7:0] tile_index;
     logic [7:0] pixel_raw;
+
+    logic [7:0] pixel_shifter[6:0];     // x_midに合わせるために7クロック遅らせて出力
+    logic [6:0] black_shifter;
 
     // ------------------------------
     //  Main
@@ -145,9 +148,24 @@ module bg7
 
     // ---- Pixel Output --------
 
-    assign transparent = screen_over[2] & (m7sel[3:2] == 2'b10);
-    assign black = screen_over[2] & (m7sel[3:2] == 2'b11);
+    assign transparent_0 = screen_over[2] & (m7sel[3:2] == 2'b10);
+    assign black_0 = screen_over[2] & (m7sel[3:2] == 2'b11);
 
-    assign pixel = transparent ? 8'h0 : pixel_raw;
+    always_ff @(posedge clk) begin
+        if (dot_en) begin
+
+            pixel_shifter[0] <= transparent_0 ? 8'h0 : pixel_raw;
+            for (int i = 0; i < 6; i++) begin
+                pixel_shifter[i+1] <= pixel_shifter[i];
+            end
+
+            black_shifter[0] <= black_0;
+            black_shifter[6:1] <= black_shifter[5:0];
+
+        end
+    end
+
+    assign pixel = pixel_shifter[6];
+    assign black = black_shifter[6];
 
 endmodule
