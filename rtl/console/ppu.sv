@@ -99,6 +99,9 @@ module ppu
 
     logic [7:0] bg7_pixel;
     logic bg7_black;
+
+    logic [3:0] mosaic_x_subtract_bg7;
+    logic [3:0] mosaic_y_subtract_bg7;
     
     // ---- OBJ --------
 
@@ -715,8 +718,12 @@ module ppu
         .period_start(x_mid == 8'hff),
 
         .size(mosaic_size),
+
         .pixel_strobe(mosaic_pixel_strobe),
-        .yofs_subtract(mosaic_yofs_subtract)
+        .yofs_subtract(mosaic_yofs_subtract),
+
+        .x_subtract_bg7(mosaic_x_subtract_bg7),
+        .y_subtract_bg7(mosaic_y_subtract_bg7)
     );
 
     bg7 bg7(
@@ -737,8 +744,8 @@ module ppu
         .m7_xorig,
         .m7_yorig,
 
-        .x(x_bg7),
-        .y,
+        .x(x_bg7 - (mosaic_enable[0] ? {4'h0, mosaic_x_subtract_bg7} : 8'h0)),
+        .y(y - (mosaic_enable[0] ? {4'h0, mosaic_y_subtract_bg7} : 8'h0)),
 
         .vram_l_addr(bg7_vram_l_addr),
         .vram_h_addr(bg7_vram_h_addr),
