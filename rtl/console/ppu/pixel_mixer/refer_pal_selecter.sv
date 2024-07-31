@@ -13,6 +13,7 @@ module refer_pal_selector
     input logic bg3_prior,
     input bg_pixel_type bg_pixel[3:0],
     input obj_pixel_type obj_pixel,
+    input logic use_direct_color,
 
     output refer_pal_type refer_pal
     // output logic [3:0] // prior_num // [todo] 消去
@@ -145,7 +146,7 @@ module refer_pal_selector
                 if (enable[4] & (obj_pixel.prior == 2'h3) & (obj_pixel.main != 4'h0)) begin
                     refer_pal = OBJ;
                     // prior_num = 4'd8;
-                end else if (enable[0] & bg_pixel[0].prior & (bg_pixel_ms[0] != 8'h0)) begin
+                end else if (enable[0] & bg_pixel[0].prior & ((bg_pixel_ms[0] != 8'h0) | (use_direct_color & (bg_pixel[0].palette != 3'h0)))) begin
                     refer_pal = BG1_8;
                     // prior_num = 4'd7;
                 end else if (enable[4] & (obj_pixel.prior == 2'h2) & (obj_pixel.main != 4'h0)) begin
@@ -157,7 +158,7 @@ module refer_pal_selector
                 end else if (enable[4] & (obj_pixel.prior == 2'h1) & (obj_pixel.main != 4'h0)) begin
                     refer_pal = OBJ;
                     // prior_num = 4'd4;
-                end else if (enable[0] & (bg_pixel_ms[0] != 8'h0)) begin
+                end else if (enable[0] & ((bg_pixel_ms[0] != 8'h0) | (use_direct_color & (bg_pixel[0].palette != 3'h0)))) begin
                     refer_pal = BG1_8;
                     // prior_num = 4'd3;
                 end else if (enable[4] & (obj_pixel.main != 4'h0)) begin
@@ -175,7 +176,7 @@ module refer_pal_selector
                 if (enable[4] & (obj_pixel.prior == 2'h3) & (obj_pixel.main != 4'h0)) begin
                     refer_pal = OBJ;
                     // prior_num = 4'd8;
-                end else if (enable[0] & bg_pixel[0].prior & (bg_pixel_ms[0] != 8'h0)) begin
+                end else if (enable[0] & bg_pixel[0].prior & ((bg_pixel_ms[0] != 8'h0) | (use_direct_color & (bg_pixel[0].palette != 3'h0)))) begin
                     refer_pal = BG1_8;
                     // prior_num = 4'd7;
                 end else if (enable[4] & (obj_pixel.prior == 2'h2) & (obj_pixel.main != 4'h0)) begin
@@ -187,7 +188,7 @@ module refer_pal_selector
                 end else if (enable[4] & (obj_pixel.prior == 2'h1) & (obj_pixel.main != 4'h0)) begin
                     refer_pal = OBJ;
                     // prior_num = 4'd4;
-                end else if (enable[0] & (bg_pixel_ms[0] != 8'h0)) begin
+                end else if (enable[0] & ((bg_pixel_ms[0] != 8'h0) | (use_direct_color & (bg_pixel[0].palette != 3'h0)))) begin
                     refer_pal = BG1_8;
                     // prior_num = 4'd3;
                 end else if (enable[4] & (obj_pixel.main != 4'h0)) begin

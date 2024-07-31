@@ -113,6 +113,7 @@ module pixel_mixer
         .bg3_prior,
         .bg_pixel,
         .obj_pixel,
+        .use_direct_color,
 
         .refer_pal(refer_pal_main)
     );
@@ -124,6 +125,7 @@ module pixel_mixer
         .bg3_prior,
         .bg_pixel,
         .obj_pixel,
+        .use_direct_color,
 
         .refer_pal(refer_pal_sub)
     );
@@ -135,6 +137,7 @@ module pixel_mixer
         .bg3_prior,
         .bg_pixel,
         .obj_pixel,
+        .use_direct_color,
 
         .refer_pal(refer_pal_sub_hres)
     );
