@@ -120,13 +120,14 @@ module bg
     always_comb begin
         case (mode)
             3'b001: vram_data_addr = tile_big // 2bpp
-                        ? ({data_base, 12'h0} + {tile_index, fine_y, xeff[3]})
-                        : ({data_base, 12'h0} + {2'h0, tile_index, fine_y[2:0]}); 
+                        ? ({data_base, 12'h0} + {tile_index + {5'h0, fine_y[3], 3'h0, xeff[3]}, fine_y[2:0]})
+                                // tile_index + (10h: 下) + (1: 右)
+                        : ({data_base, 12'h0} + {tile_index, fine_y[2:0]});
             3'b010: vram_data_addr = tile_big // 4bpp
-                        ? ({data_base, 12'h0} + {tile_index[8:0], fetch_data_num[1], fine_y, xeff[3]})
-                        : ({data_base, 12'h0} + {1'b0, tile_index, fetch_data_num[1], fine_y[2:0]});
+                        ? ({data_base, 12'h0} + {tile_index + {5'h0, fine_y[3], 3'h0, xeff[3]}, fetch_data_num[1], fine_y[2:0]})
+                        : ({data_base, 12'h0} + {tile_index, fetch_data_num[1], fine_y[2:0]});
             3'b011: vram_data_addr = tile_big // 8bpp
-                        ? ({data_base, 12'h0} + {tile_index[7:0], fetch_data_num[2:1], fine_y, xeff[3]})
+                        ? ({data_base, 12'h0} + {tile_index + {5'h0, fine_y[3], 3'h0, xeff[3]}, fetch_data_num[2:1], fine_y[2:0]})
                         : ({data_base, 12'h0} + {tile_index, fetch_data_num[2:1], fine_y[2:0]});
             3'b101: vram_data_addr =
                         ({data_base, 12'h0} + {1'b0, tile_index, fine_y[2:0], fetch_data_num[0]}); // 2bpp H-RES
