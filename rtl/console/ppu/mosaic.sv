@@ -16,10 +16,8 @@ module mosaic (
     input logic [3:0] size,
 
     output logic pixel_strobe,
-    output logic [3:0] yofs_subtract,
-
-    output logic [3:0] x_subtract_bg7,
-    output logic [3:0] y_subtract_bg7
+    output logic [3:0] x_subtract,
+    output logic [3:0] y_subtract
 );
 
     // ------------------------------
@@ -34,11 +32,11 @@ module mosaic (
     // ------------------------------
 
     // ---- Horizontal --------
-    // ブロック初めにpixelを保存(bg内で保存)
+    // [bg] ブロック初めにpixelを保存(bg内で保存)
     // [bg7] xをオフセット分引きブロック最初のピクセルにする(bg7に入力するxで引く)
 
     assign pixel_strobe = (x_ctr == 4'h0);
-    assign x_subtract_bg7 = x_ctr;
+    assign x_subtract = x_ctr;
 
     always_ff @(posedge clk) begin
         if (reset) begin
@@ -53,11 +51,10 @@ module mosaic (
     end
 
     // ---- Vertical --------
-    // yofsをオフセット分引きブロック最初の行にする(bgに入力するyofsで引く)
+    // [bg] yをオフセット分引きブロック最初の行にする(bgに入力するyで引く)
     // [bg7] yをオフセット分引きブロック最初の行にする(bg7に入力するyで引く)
 
-    assign yofs_subtract = y_ctr;
-    assign y_subtract_bg7 = y_ctr;
+    assign y_subtract = y_ctr;
 
     always_ff @(posedge clk) begin
         if (reset) begin
