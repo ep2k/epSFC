@@ -83,12 +83,16 @@ module pixel_mixer
                 color_main <= cgram_rdata;
             end
         end else if (step == 2'h2) begin
-            if ((refer_pal_sub == BG1_8) & use_direct_color) begin
-                color_sub <= direct_color;
-            end else if (refer_pal_sub == BACK) begin
-                color_sub <= sub_backdrop;
+            if ((bgmode == 3'h5) | (bgmode == 3'h6)) begin
+                color_sub <= do_main_black ? 15'h0 : cgram_rdata;
             end else begin
-                color_sub <= cgram_rdata;
+                if ((refer_pal_sub == BG1_8) & use_direct_color) begin
+                    color_sub <= direct_color;
+                end else if (do_math & (refer_pal_sub == BACK)) begin
+                    color_sub <= sub_backdrop;
+                end else begin
+                    color_sub <= cgram_rdata;
+                end
             end
         end else if (step == 2'h3) begin
             if (high_res | (bgmode == 3'd5) | (bgmode == 3'd6)) begin

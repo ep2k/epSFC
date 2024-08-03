@@ -57,6 +57,7 @@ module bg
     logic [9:0] xeff, yeff;
     logic [5:0] tile_y;
     logic [3:0] fine_y;
+    logic [2:0] fine_x;
 
     logic [14:0] vram_map_addr, vram_data_addr;
 
@@ -79,7 +80,8 @@ module bg
     
     assign vram_addr = fetch_data ? vram_data_addr : vram_map_addr;
 
-    assign {y_flip, x_flip} = attr_fetch[5:4];
+    assign y_flip = attr_fetch[5];
+    assign x_flip = attr[4];
     assign pixel_raw.prior = attr[3];
     assign pixel_raw.palette = attr[2:0];
 
@@ -130,9 +132,9 @@ module bg
                         ? ({data_base, 12'h0} + {tile_index + {5'h0, fine_y[3], 3'h0, xeff[3]}, fetch_data_num[2:1], fine_y[2:0]})
                         : ({data_base, 12'h0} + {tile_index, fetch_data_num[2:1], fine_y[2:0]});
             3'b101: vram_data_addr =
-                        ({data_base, 12'h0} + {1'b0, tile_index, fine_y[2:0], fetch_data_num[0]}); // 2bpp H-RES
+                        ({data_base, 12'h0} + {tile_index + {9'h0, fetch_data_num[0]}, fine_y[2:0]}); // 2bpp H-RES
             3'b110: vram_data_addr =
-                        ({data_base, 12'h0} + {tile_index, fetch_data_num[1], fine_y[2:0], fetch_data_num[0]}); // 4bpp H-RES
+                        ({data_base, 12'h0} + {tile_index + {9'h0, fetch_data_num[0]}, fetch_data_num[1], fine_y[2:0]}); // 4bpp H-RES
             default: vram_data_addr = 15'h0;
         endcase
     end
@@ -141,7 +143,7 @@ module bg
     // (dot_en以外の3PPUクロックでも保存しているためx[2:0]==0でのフェッチもこれをそのまま使えば良い)
     always_ff @(posedge clk) begin
         if (x[2:0] == 3'b000) begin
-            tile_x <= (tile_big | (mode[2] & (mode[1:0] != 2'h0))) ? xeff[9:4] : xeff[8:3];
+            tile_x <= tile_big ? xeff[9:4] : xeff[8:3];
         end
     end
 
@@ -151,13 +153,15 @@ module bg
         end
     end
 
+    assign fine_x = (~xeff[2:0]) ^ {3{x_flip}};
+
     generate
         for (gi = 0; gi < MAX_BPP; gi++) begin : BGShifterGen
-            logic [7:0] px, px_next, px_fetch, px_fetch_in, px_fetch_in_raw, px_fetch_reg;
-            logic [7:0] px_sub, px_sub_next, px_sub_fetch, px_sub_fetch_in, px_sub_fetch_in_raw, px_sub_fetch_reg;
+            logic [7:0] px, px_next, px_fetch, px_fetch_in, px_fetch_reg;
+            logic [7:0] px_sub, px_sub_next, px_sub_fetch, px_sub_fetch_in, px_sub_fetch_reg;
 
-            assign pixel_raw.main[gi] = px[~xeff[2:0]];
-            assign pixel_raw.sub[gi] = px_sub[~xeff[2:0]];
+            assign pixel_raw.main[gi] = px[fine_x];
+            assign pixel_raw.sub[gi] = px_sub[fine_x];
 
             assign px_fetch =
                     ((x[2:0] == 3'b111) & fetch_data & (fetch_data_num[2:1] == gi / 2))
@@ -166,20 +170,20 @@ module bg
                     ((x[2:0] == 3'b111) & fetch_data & (fetch_data_num[2:1] == gi / 2))
                             ? px_sub_fetch_in : px_sub_fetch_reg;
 
-            // px_fetch_in_raw
+            // px_fetch_in
             always_comb begin
                 if (~fetch_data_num[0]) begin
-                    px_fetch_in_raw = (gi % 2 == 0)
+                    px_fetch_in = (gi % 2 == 0)
                         ? vram_rdata[7:0]
                         : vram_rdata[15:8];
                 end else begin
-                    px_fetch_in_raw[7:4] = {
+                    px_fetch_in[7:4] = {
                         px_fetch_reg[6],
                         px_fetch_reg[4],
                         px_fetch_reg[2],
                         px_fetch_reg[0]
                     };
-                    px_fetch_in_raw[3:0] = (gi % 2 == 0) ? {
+                    px_fetch_in[3:0] = (gi % 2 == 0) ? {
                         vram_rdata[6],
                         vram_rdata[4],
                         vram_rdata[2],
@@ -193,26 +197,15 @@ module bg
                 end
             end
 
-            assign px_fetch_in = x_flip ? {
-                        px_fetch_in_raw[0],
-                        px_fetch_in_raw[1],
-                        px_fetch_in_raw[2],
-                        px_fetch_in_raw[3],
-                        px_fetch_in_raw[4],
-                        px_fetch_in_raw[5],
-                        px_fetch_in_raw[6],
-                        px_fetch_in_raw[7]
-                    } : px_fetch_in_raw;
-
-            // px_sub_fetch_in_raw
+            // px_sub_fetch_in
             always_comb begin
-                px_sub_fetch_in_raw[7:4] = {
-                    px_sub_fetch_reg[7],
-                    px_sub_fetch_reg[5],
-                    px_sub_fetch_reg[3],
-                    px_sub_fetch_reg[1]
+                px_sub_fetch_in[7:4] = {
+                    px_fetch_reg[7],
+                    px_fetch_reg[5],
+                    px_fetch_reg[3],
+                    px_fetch_reg[1]
                 };
-                px_sub_fetch_in_raw[3:0] = (gi % 2 == 0) ? {
+                px_sub_fetch_in[3:0] = (gi % 2 == 0) ? {
                     vram_rdata[7],
                     vram_rdata[5],
                     vram_rdata[3],
@@ -224,17 +217,6 @@ module bg
                     vram_rdata[9]
                 };
             end
-
-            assign px_sub_fetch_in = x_flip ? {
-                        px_sub_fetch_in_raw[0],
-                        px_sub_fetch_in_raw[1],
-                        px_sub_fetch_in_raw[2],
-                        px_sub_fetch_in_raw[3],
-                        px_sub_fetch_in_raw[4],
-                        px_sub_fetch_in_raw[5],
-                        px_sub_fetch_in_raw[6],
-                        px_sub_fetch_in_raw[7]
-                    } : px_sub_fetch_in_raw;
 
             // px_fetch_reg, px_sub_fetch_reg
             always_ff @(posedge clk) begin

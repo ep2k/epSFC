@@ -882,7 +882,7 @@ module ppu
     );
 
     assign color_raw = fblank ? 15'h0 : (
-            h_ctr[1]
+            dot_ctr[1]
             ? color_right
             : color_left
         );
