@@ -94,14 +94,12 @@ module ppu
     logic [9:0] opt_x, opt_y;
     logic [1:0] opt_apply_x, opt_apply_y;
 
-    logic mosaic_pixel_strobe;
-    logic [3:0] mosaic_yofs_subtract;
-
     logic [7:0] bg7_pixel;
     logic bg7_black;
 
-    logic [3:0] mosaic_x_subtract_bg7;
-    logic [3:0] mosaic_y_subtract_bg7;
+    logic mosaic_pixel_strobe;
+    logic [3:0] mosaic_x_subtract;
+    logic [3:0] mosaic_y_subtract;
     
     // ---- OBJ --------
 
@@ -682,9 +680,9 @@ module ppu
                 .fetch_data_num,
 
                 .x(x_fetch),
-                .y,
+                .y(y - (mosaic_enable[gi] ? {4'h0, mosaic_y_subtract} : 8'h0)), // Mosaic Horizontal handling
                 .xofs(bg_xofs_eff),
-                .yofs(bg_yofs_eff - (mosaic_enable[gi] ? {6'h0, mosaic_yofs_subtract} : 10'h0)), // Mosaic Horizontal handling
+                .yofs(bg_yofs_eff), 
                 .map_base(bg_map_base[gi]),
                 .map_size(bg_map_size[gi]),
                 .data_base(bg_data_base[gi]),
@@ -708,24 +706,6 @@ module ppu
         end
     endgenerate
 
-    mosaic mosaic(
-        .clk,
-        .reset,
-        .dot_en,
-
-        .newframe(v_ctr == 9'd0),
-        .newline(h_ctr == 9'd0),
-        .period_start(x_mid == 8'hff),
-
-        .size(mosaic_size),
-
-        .pixel_strobe(mosaic_pixel_strobe),
-        .yofs_subtract(mosaic_yofs_subtract),
-
-        .x_subtract_bg7(mosaic_x_subtract_bg7),
-        .y_subtract_bg7(mosaic_y_subtract_bg7)
-    );
-
     bg7 bg7(
         .clk,
         .reset,
@@ -744,8 +724,8 @@ module ppu
         .m7_xorig,
         .m7_yorig,
 
-        .x(x_bg7 - (mosaic_enable[0] ? {4'h0, mosaic_x_subtract_bg7} : 8'h0)),
-        .y(y - (mosaic_enable[0] ? {4'h0, mosaic_y_subtract_bg7} : 8'h0)),
+        .x(x_bg7 - (mosaic_enable[0] ? {4'h0, mosaic_x_subtract} : 8'h0)),
+        .y(y - (mosaic_enable[0] ? {4'h0, mosaic_y_subtract} : 8'h0)),
 
         .vram_l_addr(bg7_vram_l_addr),
         .vram_h_addr(bg7_vram_h_addr),
@@ -780,6 +760,22 @@ module ppu
         end
 
     end
+
+    mosaic mosaic(
+        .clk,
+        .reset,
+        .dot_en,
+
+        .newframe(v_ctr == 9'd0),
+        .newline(h_ctr == 9'd0),
+        .period_start(x_mid == 8'hff),
+
+        .size(mosaic_size),
+
+        .pixel_strobe(mosaic_pixel_strobe),
+        .x_subtract(mosaic_x_subtract),
+        .y_subtract(mosaic_y_subtract)
+    );
 
     // ---- Object (OBJ) / Sprite --------
 
