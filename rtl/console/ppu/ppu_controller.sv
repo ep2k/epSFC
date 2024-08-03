@@ -473,13 +473,13 @@ module ppu_controller (
         priority casez ({bgmode, x_fetch[2:0]})
             /*
                 000: データ0 / OPT(2, Horizontal) / OPT(1)
-                001: データ0上位8bit (同時にピクセルシフトレジスタを組み換え, True H-RES用) / OPT(2, Vertical)
+                001: データ0右 (同時にピクセルシフトレジスタを組み換え, True H-RES用) / OPT(2, Vertical)
                 010: データ1
-                011: データ1上位8bit (同時にピクセルシフトレジスタを組み換え, True H-RES用)
+                011: データ1右 (同時にピクセルシフトレジスタを組み換え, True H-RES用)
                 100: データ2
-                101: データ2上位8bit (同時にピクセルシフトレジスタを組み換え, True H-RES用)
+                101: データ2右 (同時にピクセルシフトレジスタを組み換え, True H-RES用)
                 110: データ3
-                111: データ3上位8bit (同時にピクセルシフトレジスタを組み換え, True H-RES用)
+                111: データ3右 (同時にピクセルシフトレジスタを組み換え, True H-RES用)
             */
             6'o0?: fetch_data_num = 3'b000; // Mode 0, x=1,3,5,7: データ0
 

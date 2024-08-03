@@ -130,9 +130,9 @@ module bg
                         ? ({data_base, 12'h0} + {tile_index + {5'h0, fine_y[3], 3'h0, xeff[3]}, fetch_data_num[2:1], fine_y[2:0]})
                         : ({data_base, 12'h0} + {tile_index, fetch_data_num[2:1], fine_y[2:0]});
             3'b101: vram_data_addr =
-                        ({data_base, 12'h0} + {1'b0, tile_index, fine_y[2:0], fetch_data_num[0]}); // 2bpp H-RES
+                        ({data_base, 12'h0} + {tile_index + {9'h0, fetch_data_num[0]}, fine_y[2:0]}); // 2bpp H-RES
             3'b110: vram_data_addr =
-                        ({data_base, 12'h0} + {tile_index, fetch_data_num[1], fine_y[2:0], fetch_data_num[0]}); // 4bpp H-RES
+                        ({data_base, 12'h0} + {tile_index + {9'h0, fetch_data_num[0]}, fetch_data_num[1], fine_y[2:0]}); // 4bpp H-RES
             default: vram_data_addr = 15'h0;
         endcase
     end
@@ -141,7 +141,7 @@ module bg
     // (dot_en以外の3PPUクロックでも保存しているためx[2:0]==0でのフェッチもこれをそのまま使えば良い)
     always_ff @(posedge clk) begin
         if (x[2:0] == 3'b000) begin
-            tile_x <= (tile_big | (mode[2] & (mode[1:0] != 2'h0))) ? xeff[9:4] : xeff[8:3];
+            tile_x <= tile_big ? xeff[9:4] : xeff[8:3];
         end
     end
 
