@@ -258,7 +258,11 @@ module ppu
         .address(vram_l_addr),
         .clock(clk),
         .data(wdata),
-        .wren(((~(fetch_map | fetch_data)) | fblank) & cpu_en & (b_op == B_VMDATAL)),
+        .wren(
+            ((~(fetch_map | fetch_data | ((bgmode == 3'h7) & bg7_period) | obj_vram_read)) | fblank)
+            & cpu_en
+            & (b_op == B_VMDATAL)
+        ),
         .q(vram_rdata_l)
     );
 
@@ -266,7 +270,11 @@ module ppu
         .address(vram_h_addr),
         .clock(clk),
         .data(wdata),
-        .wren(((~(fetch_map | fetch_data)) | fblank) & cpu_en & (b_op == B_VMDATAH)),
+        .wren(
+            ((~(fetch_map | fetch_data | ((bgmode == 3'h7) & bg7_period) | obj_vram_read)) | fblank)
+            & cpu_en
+            & (b_op == B_VMDATAH)
+        ),
         .q(vram_rdata_h)
     );
 
