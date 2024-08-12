@@ -30,6 +30,7 @@
   `define COORD_POINTER_B 5'h0  // 0-1F
 `define USE_ENVX_SQUARE_PWM     // Comment out to disable
 `define USE_SOUND_ABS_MAX       // Comment out to disable
+`define USE_CPU_CYCLE_DEBUG     // Comment out to disable
 
 
 `endif // CONFIG_VH

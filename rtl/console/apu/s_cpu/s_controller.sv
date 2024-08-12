@@ -1,8 +1,10 @@
 // ==============================
-//  SCP700 CPU Controller
+//  SPC700 CPU Controller
 // ==============================
 
 // Copyright(C) 2024 ep2k All Rights Reserved.
+
+`include "config.vh"    // include/de0cv/config.vh
 
 module s_controller
     import s_cpu_pkg::*;
@@ -102,5 +104,18 @@ module s_controller
 
         .ctl_signals
     );
+
+    `ifdef USE_CPU_CYCLE_DEBUG
+        s_cpu_cycle_debug s_cpu_cycle_debug(
+            .clk,
+            .cpu_en,
+            .reset,
+
+            .state_opfetch(state == SS_OPFETCH),
+            .op,
+
+            .psw
+        );
+    `endif
     
 endmodule

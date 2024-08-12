@@ -4,6 +4,8 @@
 
 // Copyright(C) 2024 ep2k All Rights Reserved.
 
+`include "config.vh"    // include/de0cv/config.vh
+
 module controller
     import cpu_pkg::*;
 (
@@ -240,5 +242,23 @@ module controller
             default: ctl_signals = ctl_signals_state;
         endcase
     end
+
+    `ifdef USE_CPU_CYCLE_DEBUG
+        cpu_cycle_debug cpu_cycle_debug(
+            .clk,
+            .cpu_en,
+            .reset,
+
+            .state_fetch_opcode(state == S_FETCH_OPCODE),
+            .op,
+            .hard_int(exe_reset | exe_irq | exe_nmi),
+
+            .m8,
+            .x8,
+            .e,
+            .dplz,
+            .p
+        );
+    `endif
     
 endmodule
