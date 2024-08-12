@@ -166,7 +166,8 @@ module s_next_state_detector
                 SS_OPFETCH: next_state = SS_ADHFETCH;
                 SS_ADHFETCH: next_state = SS_ADLFETCH;
                 SS_ADLFETCH: next_state = SS_COPY_TEMP_MEMDP2;
-                SS_COPY_TEMP_MEMDP2: next_state = SS_CALC_TEMP_MEMDP;
+                SS_COPY_TEMP_MEMDP2: next_state = (i == SI_MOV)
+                                    ? SS_COPY_MEMDP_TEMP : SS_CALC_TEMP_MEMDP;
                 SS_CALC_TEMP_MEMDP: next_state = (i == SI_CMP)
                                     ? SS_NOP : SS_COPY_MEMDP_TEMP;
                 SS_NOP: next_state = SS_OPFETCH;

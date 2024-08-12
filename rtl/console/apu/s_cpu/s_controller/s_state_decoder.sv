@@ -393,8 +393,6 @@ module s_state_decoder
             case (i)
                 SI_MOV: begin
                         s.alu_control = SC_ACTL_ADD;
-                        s.psw_write[N] = 1'b1;
-                        s.psw_write[Z] = 1'b1;
                     end
                 SI_ADC: begin
                         s.alu_control = SC_ACTL_ADC;
