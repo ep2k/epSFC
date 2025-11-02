@@ -5,6 +5,14 @@ include/*/config.vh
 include/*/top_assignment.sv
 
 # -------------------------
+#   KiCad
+# -------------------------
+kicad/*/fp-info-cache
+kicad/*/*.kicad_prl
+kicad/*/*backups
+kicad/*/gerber
+
+# -------------------------
 #   Visual Studio Code
 # -------------------------
 
